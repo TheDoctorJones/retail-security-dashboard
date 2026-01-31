@@ -1,0 +1,45 @@
+# Render Blueprint - Deploy with one click
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Main web service (API + Frontend)
+  - type: web
+    name: retail-security-dashboard
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      cd frontend && npm install && npm run build
+    startCommand: gunicorn backend.api_server:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: NODE_VERSION
+        value: "20"
+      - key: PRODUCTION
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: retail-security-db
+          property: connectionString
+    autoDeploy: true
+
+  # Cron job for daily data scraping
+  - type: cron
+    name: retail-security-scraper
+    runtime: python
+    schedule: "0 6 * * *"  # Run at 6 AM UTC daily
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_scraper.py --days 7
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: retail-security-db
+          property: connectionString
+
+databases:
+  - name: retail-security-db
+    plan: free  # Free tier: 90 days, then need to recreate or upgrade
+    databaseName: retail_security
+    user: retail_user
