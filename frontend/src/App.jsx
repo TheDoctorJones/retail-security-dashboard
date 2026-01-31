@@ -459,6 +459,19 @@ export default function App() {
             <span className="text-slate-400 text-sm">
               Last updated: {new Date().toLocaleTimeString()}
             </span>
+                          <button
+                                            onClick={async () => {
+                                                                try {
+                                                                                      const res = await fetch(`${API_BASE}/refresh`, { method: 'POST' });
+                                                                                      const data = await res.json();
+                                                                                      alert(data.message || data.error);
+                                                                                      if (data.success) setTimeout(() => window.location.reload(), 3000);
+                                                                } catch (e) { alert('Failed to trigger refresh'); }
+                                            }}
+                                            className="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+                                          >
+                                          🔄 Refresh Data
+                          </button>button></button>
           </div>
         </div>
       </header>
